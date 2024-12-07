@@ -1,0 +1,87 @@
+/* General styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%; 
+}
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f9;
+  color: #333;
+
+  display: flex; 
+  flex-direction: column; /* Stack elements vertically */
+}
+
+/* Header styles */
+header {
+  background: #333;
+  color: #fff;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+}
+
+/* Navigation bar */
+nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+nav ul li {
+  display: inline;
+  margin: 0 10px;
+}
+
+nav ul li a {
+  display: inline-block; /* Ensures the box surrounds the text */
+  padding: 10px 15px;    /* Adds space inside the box */
+  text-decoration: none; /* Removes the underline */
+  color: #fff;           /* Default text color */
+  border: 2px solid transparent; /* No visible border initially */
+  transition: all 0.3s ease;     /* Transition effect */
+}
+
+/* If page is active */
+nav ul li a.active {
+  font-weight: bold;
+  text-decoration: underline;
+  color: #ffffff;
+}
+
+/* When hovering over option */
+nav ul li a:hover {
+  background-color: #fff; /* White background on hover */
+  color: #333;            /* Change text color to dark */
+  border: 2px solid #fff; /* Add a white border */
+  border-radius: 5px;     /* Rounded corners for the box */
+}
+
+/* Section styles */
+main {
+  flex: 1; /* Ensures main content expands to push footer down */
+}
+
+section {
+  padding: 2rem;
+  margin: 2rem 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+/* Footer styles */
+footer {
+  text-align: center;
+  background: #333;
+  color: #fff;
+  padding: 1rem 0;
+  margin-top: auto; /* Ensures the footer stays at the bottom */
+}
