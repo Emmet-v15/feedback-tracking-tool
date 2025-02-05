@@ -8,7 +8,7 @@ function Home() {
             </section>
 
             <section className="content-box">
-                <p>This is the home section of my website.</p>
+                <p>This is the home section of the website.</p>
             </section>
         </main>
     );
