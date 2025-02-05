@@ -110,3 +110,24 @@
 .modal-content button[type="button"]:hover {
     background-color: #d32f2f;
 }
+
+/* Style for the list of feedback titles */
+.feedback-list {
+    margin-top: 30px;
+}
+
+/* Style for each feedback item */
+.feedback-item {
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    text-align: left;
+}
+
+.feedback-item p {
+    margin: 0;
+    font-size: 16px;
+}
+

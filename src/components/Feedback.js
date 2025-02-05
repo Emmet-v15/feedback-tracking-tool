@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import '../styles/Feedback.css'; // Import the Feedback-specific CSS
+import '../styles/Feedback.css'; // Import the Feedback CSS
+
+// MODAL = NEW FEEDBACK BOX WHERE THE USER ENTERS THERE FEEDBACK
 
 function Feedback() {
     // State to manage modal visibility
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [feedbacks, setFeedbacks] = useState([]); // State to store all submitted feedback
 
     // Function to open the modal
     const openModal = () => setIsModalOpen(true);
@@ -16,7 +19,8 @@ function Feedback() {
     // Function to handle form submission (for feedback)
     const handleSubmit = (e) => {
         e.preventDefault();
-        alert(`Feedback Submitted:\nTitle: ${title}\nDescription: ${description}`);
+        // Add new feedback to the feedbacks array
+        setFeedbacks([...feedbacks, title]);
         // Reset form fields after submission
         setTitle('');
         setDescription('');
@@ -37,7 +41,14 @@ function Feedback() {
                     New Feedback
                 </button>
 
-                <p>This section shows you your current feedback or feedback to be responded to.</p>
+                {/* Display all feedback titles */}
+                <div className="feedback-list">
+                    {feedbacks.map((feedback, index) => (
+                        <div key={index} className="feedback-item">
+                            <p>{feedback}</p>
+                        </div>
+                    ))}
+                </div>
             </section>
 
             {/* Modal for New Feedback */}
