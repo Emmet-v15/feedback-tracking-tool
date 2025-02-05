@@ -10,7 +10,7 @@ body {
   line-height: 1.6;
   margin: 0;
   padding: 0;
-  background-color: #f4f4f9;
+  background-color: #ffffff;
   color: #333;
 
   display: flex; 
@@ -85,3 +85,26 @@ footer {
   padding: 1rem 0;
   margin-top: auto; /* Ensures the footer stays at the bottom */
 }
+
+.page-header {
+  background: #ffffff;
+  color: #333;
+  padding: 1rem 0;
+  text-align: center;
+  margin-bottom: 0;
+  border: none;
+}
+
+/* Shared Content Box Styles */
+.content-box {
+  text-align: center;
+  padding: 20px;
+  background-color: #fff;
+  border: none;
+  position: relative; /* Ensures relative positioning for child elements */
+
+  width: 95%; /* Full width */
+  max-width: none; /* Remove width restrictions */
+  margin: 0 auto; /* Centers if needed */
+}
+
