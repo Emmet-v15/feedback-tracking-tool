@@ -104,14 +104,18 @@
 
 /* Style for each feedback item */
 .feedback-item {
-    padding: 10px;
+    padding-left: 10px;
+    padding-top:10px;
     border: 1px solid #ddd;
     border-radius: 5px;
     background-color: #f9f9f9;
     margin-bottom: 10px;
     text-align: left;
     cursor: pointer;
+    display: flex;
+    justify-content: space-between;
     transition: background 0.3s ease-in-out;
+    position: relative; /* Ensure the timer container is positioned relative to this element */
 }
 
 .feedback-item:hover {
@@ -121,7 +125,34 @@
 .feedback-item h3 {
     margin: 5px 0;
 }
+
 .feedback-item p {
     margin-top: 3px; /* Reduce space between title and first line of description */
     color: #555;
+}
+
+/* Container for the timer and its title */
+.feedback-timer-container {
+    position: absolute; /* Position relative to the feedback item */
+    top: 10px; /* Align it to the top */
+    right: 10px; /* Align it to the right */
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    font-size: 14px;
+    color: #888;
+}
+
+/* Title for the feedback created */
+.feedback-timer-title {
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+/* Timer displayed on the right */
+.feedback-timer {
+    white-space: nowrap; /* Prevent wrapping */
+    font-size: 14px;
 }
