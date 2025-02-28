@@ -66,20 +66,6 @@ main {
   flex: 1; /* Ensures main content expands to push footer down */
 }
 
-section {
-  padding: 2rem;
-  margin: 1rem 0;
-}
-
-/* Footer styles */
-footer {
-  margin-top: auto; /* Ensures the footer stays at the bottom */
-  text-align: center;
-  background: #333;
-  color: #fff;
-  padding: 1rem 0;
-}
-
 .page-header {
   background: #ffffff;
   color: #333;
@@ -91,9 +77,9 @@ footer {
 
 /* Shared Content Box Styles */
 .content-box {
-  min-height: 70vh;
-  
-  text-align: center;
+  min-height: 71vh;
+
+  text-align: left;
   padding: 20px;
   background-color: #fff;
   border: none;
@@ -102,5 +88,14 @@ footer {
   width: 95%; /* Full width */
   max-width: none; /* Remove width restrictions */
   margin: 0 auto; /* Centers if needed */
+}
+
+/* Footer styles */
+footer {
+  margin-top: auto; /* Ensures the footer stays at the bottom */
+  text-align: center;
+  background: #333;
+  color: #fff;
+  padding: 1rem 0;
 }
 
