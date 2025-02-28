@@ -1,86 +1,109 @@
 import React, { useState } from 'react';
 import '../styles/Feedback.css'; // Import the Feedback CSS
 
-// MODAL = NEW FEEDBACK BOX WHERE THE USER ENTERS THERE FEEDBACK
-
 function Feedback() {
-    // State to manage modal visibility
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isViewingFeedback, setIsViewingFeedback] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [feedbacks, setFeedbacks] = useState([]); // State to store all submitted feedback
+    const [feedbacks, setFeedbacks] = useState([]); // Store all feedbacks
+    const [selectedFeedback, setSelectedFeedback] = useState(null); // Track which feedback is selected for viewing
 
-    // Function to open the modal
-    const openModal = () => setIsModalOpen(true);
+    // Function to open the "new feedback" modal
+    const openModal = () => {
+        setIsModalOpen(true);
+        setIsViewingFeedback(false);
+    };
+
+    // Function to open the "view feedback" modal
+    const openFeedbackModal = (feedback) => {
+        setSelectedFeedback(feedback);
+        setIsViewingFeedback(true);
+        setIsModalOpen(true);
+    };
 
     // Function to close the modal
-    const closeModal = () => setIsModalOpen(false);
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedFeedback(null);
+    };
 
-    // Function to handle form submission (for feedback)
+    // Function to handle form submission (for new feedback)
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Add new feedback to the feedbacks array
-        setFeedbacks([...feedbacks, title]);
-        // Reset form fields after submission
+        setFeedbacks([...feedbacks, { title, description }]); // Store title & description
         setTitle('');
         setDescription('');
-        closeModal();  // Close modal after submission
+        closeModal();
     };
 
     return (
         <main>
-            {/* Header Section */}
             <section className="page-header">
                 <h2>Feedback</h2>
             </section>
 
-            {/* Main Content Section */}
             <section className="content-box">
-                {/* New Feedback Button */}
                 <button className="feedback-button" onClick={openModal}>
                     New Feedback
                 </button>
 
-                {/* Display all feedback titles */}
                 <div className="feedback-list">
                     {feedbacks.map((feedback, index) => (
-                        <div key={index} className="feedback-item">
-                            <p>{feedback}</p>
+                        <div
+                            key={index}
+                            className="feedback-item"
+                            onClick={() => openFeedbackModal(feedback)}
+                        >
+                            <h3>{feedback.title}</h3>
+                            <p>{feedback.description.length > 50 ? `${feedback.description.substring(0, 250)}...` : feedback.description}</p>
                         </div>
                     ))}
                 </div>
             </section>
 
-            {/* Modal for New Feedback */}
+            {/* Modal for creating new feedback OR viewing feedback */}
             {isModalOpen && (
                 <div className="modal-overlay">
                     <div className="modal-content">
-                        <h3>Submit New Feedback</h3>
-                        <form onSubmit={handleSubmit}>
-                            <div>
-                                <label htmlFor="title">Title</label>
-                                <input
-                                    type="text"
-                                    id="title"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label htmlFor="description">Description</label>
-                                <textarea
-                                    id="description"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <button type="submit">Submit</button>
-                                <button type="button" onClick={closeModal}>Cancel</button>
-                            </div>
-                        </form>
+                        {isViewingFeedback ? (
+                            <>
+                                <h3>{selectedFeedback.title}</h3>
+                                <p>{selectedFeedback.description}</p>
+                                <div>
+                                    <button type="red" onClick={closeModal}>Close</button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <h3>Submit New Feedback</h3>
+                                <form onSubmit={handleSubmit}>
+                                    <div>
+                                        <label htmlFor="title">Title</label>
+                                        <input
+                                            type="text"
+                                            id="title"
+                                            value={title}
+                                            onChange={(e) => setTitle(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="description">Description</label>
+                                        <textarea
+                                            id="description"
+                                            value={description}
+                                            onChange={(e) => setDescription(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <button type="submit">Submit</button>
+                                        <button type="red" onClick={closeModal}>Cancel</button>
+                                    </div>
+                                </form>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
