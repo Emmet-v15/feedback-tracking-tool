@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-function Header() {
+function Header({ toggleTheme, theme }) {
     const location = useLocation();
 
     return (
@@ -18,6 +18,11 @@ function Header() {
                         <Link to="/feedback" className={location.pathname === "/feedback" ? "active" : ""}>
                             Feedback
                         </Link>
+                    </li>
+                    <li>
+                        <button className="theme-toggle" onClick={toggleTheme}>
+                            {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+                        </button>
                     </li>
                 </ul>
             </nav>
