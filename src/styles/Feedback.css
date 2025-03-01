@@ -52,6 +52,8 @@
 /* Modal Form Inputs (Title) */
 .modal-content input,
 .modal-content textarea {
+    background-color: var(--feedback-bg);
+    color: var(--text-color);
     width: 100%;
     padding: 10px;
     margin: 10px 0;
