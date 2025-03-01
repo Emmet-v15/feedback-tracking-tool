@@ -58,15 +58,20 @@ function Feedback() {
         }
     };
 
-    // Update feedback timers every minute
+    // Update feedback timers every second
     useEffect(() => {
         const interval = setInterval(() => {
-            setFeedbacks([...feedbacks]); // Trigger re-render to update the timers
-        }, 60000); // Update every 60 seconds
+            setFeedbacks((prevFeedbacks) => {
+                return prevFeedbacks.map((feedback) => ({
+                    ...feedback,
+                    elapsedTime: getElapsedTime(feedback.timestamp), // Update the elapsed time
+                }));
+            });
+        }, 1000); // Update every 1 second
 
         // Cleanup interval on component unmount
         return () => clearInterval(interval);
-    }, [feedbacks]);
+    }, []);
 
     return (
         <main>
@@ -92,7 +97,7 @@ function Feedback() {
                             </div>
                             <div className="feedback-timer-container">
                                 <span className="feedback-timer-title">Feedback Created:</span>
-                                <span className="feedback-timer">{getElapsedTime(feedback.timestamp)}</span>
+                                <span className="feedback-timer">{feedback.elapsedTime || getElapsedTime(feedback.timestamp)}</span>
                             </div>
                         </div>
                     ))}
