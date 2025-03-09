@@ -48,7 +48,12 @@ This will start both frontend and backend services together.
 
 #### Option 2: Frontend Only (For UI Work)
 If you're only working on the frontend and don't need backend services:
+
 ```bash
+# install PNPM if you haven't already (Performant node package manager)
+npm i -g pnpm
+
+# run the frontend
 cd frontend
 pnpm install
 pnpm start
