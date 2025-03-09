@@ -41,7 +41,9 @@ Feedtrac is a feedback tracking system for educational environments that enables
 ### Run Application
 
 #### Option 1: With Docker (Recommended)
+
 ```bash
+# Ensure you have docker running beforehand.
 docker-compose up
 ```
 This will start both frontend and backend services together.
