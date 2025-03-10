@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String?
+  role      UserRole   @default(STUDENT)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  feedback  Feedback[] @relation("CreatedFeedback")
+  comments  Comment[]
+
+  @@map("users")
+}
+
+model Feedback {
+  id          String         @id @default(uuid())
+  title       String
+  description String
+  status      FeedbackStatus @default(OPEN)
+  type        FeedbackType
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  closedAt    DateTime?      @map("closed_at")
+  createdBy   User           @relation("CreatedFeedback", fields: [createdById], references: [id])
+  createdById String         @map("created_by_id")
+  comments    Comment[]
+  tags        Tag[]          @relation("FeedbackToTag")
+
+  @@map("feedback")
+}
+
+model Comment {
+  id         String   @id @default(uuid())
+  content    String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   String   @map("author_id")
+  feedback   Feedback @relation(fields: [feedbackId], references: [id])
+  feedbackId String   @map("feedback_id")
+
+  @@map("comments")
+}
+
+model Tag {
+  id       String     @id @default(uuid())
+  name     String     @unique
+  feedback Feedback[] @relation("FeedbackToTag")
+
+  @@map("tags")
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+  STUDENT
+}
+
+enum FeedbackStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  UNRESOLVED
+}
+
+enum FeedbackType {
+  MODULE
+  LECTURE
+  PROGRAM
+  SCHOOL
+  OTHER
+}
