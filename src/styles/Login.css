@@ -1,36 +1,38 @@
-﻿/* This CSS now applies the background image to the entire .login-page */
+﻿/* This CSS file relates to Login.js and Signup.js */
+
+/* Import poppins font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
 .login-page {
     --accent-color: #2a1b7f;
     --base-color: white;
     --text-color: #2E2B41;
     --input-color: #F3F0FF;
-    --background-image: url('../assets/BLACK.jpg'); /* Adjust path if necessary */
+    --background-image: url('../assets/BLACK.jpg');
 
     /* Set background image for the entire page */
     background-image: var(--background-image);
     background-size: cover; /* Make the background image cover the entire page */
     background-position: center; /* Center the background image */
-    min-height: 100vh; /* Ensure the background takes the full viewport height */
+    min-height: 100vh; 
     display: flex;
-    align-items: center;  /* Center vertically */
-    justify-content: flex-start; /* Align content to the left */
+    align-items: center;  
+    justify-content: flex-start; 
 }
 
 .login-page * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-}
-
-.login-page html {
-    font-family: Poppins, Segoe UI, sans-serif;
+    
+    font-family: 'Poppins', Segoe UI, sans-serif; /* Apply Poppins font */
     font-size: 12pt;
     color: var(--text-color);
 }
 
 .login-page body {
     min-height: 100vh;
-    background: none; /* Make sure no background is applied here */
+    background: none;
     overflow: hidden;
 }
 
