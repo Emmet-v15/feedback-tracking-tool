@@ -3,7 +3,6 @@ import "../styles/Login.css"; // Make sure the Login.css is imported
 import { validateLogin } from '../utils/Validation';
 import { useNavigate } from 'react-router-dom';
 import LockIcon from '../assets/Lock.svg';
-import BlackImage from '../assets/BLACK.jpg';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -23,8 +22,9 @@ const Login = () => {
     };
 
     return (
-        <div className="login-page">  {/* Add this class here */}
-            <div className="form-container">
+        <div className="login-page">
+            {/* Changed from "form-container" to "wrapper" to align with CSS */}
+            <div className="wrapper">
                 <h1>Login</h1>
                 <p className="error-message">{errorMessage}</p>
                 <form onSubmit={handleSubmit}>
@@ -53,9 +53,6 @@ const Login = () => {
                     <button type="submit">Login</button>
                 </form>
                 <p>New here? <a href="/signup">Create an Account</a></p>
-            </div>
-            <div className="image-container">
-                <img src={BlackImage} alt="Background" className="background-image" />
             </div>
         </div>
     );

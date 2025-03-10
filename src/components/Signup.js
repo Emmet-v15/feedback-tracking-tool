@@ -4,7 +4,6 @@ import { validateSignup } from '../utils/Validation';
 import { useNavigate } from 'react-router-dom';
 import LockIcon from '../assets/Lock.svg';
 import PersonIcon from '../assets/Person.svg';
-import BlackImage from '../assets/BLACK.jpg';
 
 const Signup = () => {
     const [firstname, setFirstname] = useState('');
@@ -27,7 +26,8 @@ const Signup = () => {
 
     return (
         <div className="login-page">  {/* Add this class here */}
-            <div className="form-container">
+            {/* Changed from "form-container" to "wrapper" to align with CSS */}
+            <div className="wrapper">
                 <h1>Signup</h1>
                 <p className="error-message">{errorMessage}</p>
                 <form onSubmit={handleSubmit}>
@@ -80,9 +80,6 @@ const Signup = () => {
                     <button type="submit">Signup</button>
                 </form>
                 <p>Already have an Account? <a href="/login">Login</a></p>
-            </div>
-            <div className="image-container">
-                <img src={BlackImage} alt="Background" className="background-image" />
             </div>
         </div>
     );

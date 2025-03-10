@@ -11,6 +11,9 @@
     background-size: cover; /* Make the background image cover the entire page */
     background-position: center; /* Center the background image */
     min-height: 100vh; /* Ensure the background takes the full viewport height */
+    display: flex;
+    align-items: center;  /* Center vertically */
+    justify-content: flex-start; /* Align content to the left */
 }
 
 .login-page * {
@@ -23,7 +26,6 @@
     font-family: Poppins, Segoe UI, sans-serif;
     font-size: 12pt;
     color: var(--text-color);
-    text-align: center;
 }
 
 .login-page body {
@@ -34,8 +36,8 @@
 
 .login-page .wrapper {
     box-sizing: border-box;
-    background-color: var(--base-color);
-    height: 100vh;
+    background-color: white; /* White box background */
+    height: 100vh; /* Make the white box fill the entire height */
     width: max(40%, 600px);
     padding: 10px;
     border-radius: 0 20px 20px 0;
