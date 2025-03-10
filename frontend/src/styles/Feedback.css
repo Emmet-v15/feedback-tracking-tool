@@ -158,3 +158,36 @@
     white-space: nowrap; /* Prevent wrapping */
     font-size: 14px;
 }
+
+/* Style for generic labels */
+.label {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 120px;
+    height: 30px;
+    margin: 2px;
+    font-family: sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    border-radius: 5px;
+    line-height: 1;
+}
+
+/* Coloured Labels */
+.label-green {
+    background-color: #008c4a;
+}
+.label-amber {
+    background-color: #997300;
+}
+.label-purple {
+    background-color: #6b00b6;
+}
+.label-blue {
+    background-color: #0052cc;
+}
+.label-teal {
+    background-color: #008080;
+}

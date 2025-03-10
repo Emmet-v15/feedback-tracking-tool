@@ -79,6 +79,14 @@ function Feedback() {
                 <h2>Feedback</h2>
             </section>
 
+            <section className="tag-test">
+                <div className="label label-amber"><p>Ongoing</p></div>
+                <div className="label label-green"><p>Completed</p></div>
+                <div className="label label-blue"><p>Updated</p></div>
+                <div className="label label-purple"><p>Escalated</p></div>
+                <div className="label label-teal"><p>Placeholder</p></div>
+            </section>
+
             <section className="content-box">
                 <button className="feedback-button" onClick={openModal}>
                     New Feedback
@@ -94,6 +102,7 @@ function Feedback() {
                             <div className="feedback-details">
                                 <h3>{feedback.title}</h3>
                                 <p>{feedback.description.length > 50 ? `${feedback.description.substring(0, 250)}...` : feedback.description}</p>
+                                <div className="label label-amber"><p>Ongoing</p></div>
                             </div>
                             <div className="feedback-timer-container">
                                 <span className="feedback-timer-title">Feedback Created:</span>
