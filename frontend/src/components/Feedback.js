@@ -9,6 +9,23 @@ function Feedback() {
     const [feedbacks, setFeedbacks] = useState([]); // Store all feedbacks
     const [selectedFeedback, setSelectedFeedback] = useState(null); // Track which feedback is selected for viewing
 
+    // Function to fetch feedbacks from the server
+    const fetchFeedbacks = () => {
+        fetch('http://localhost:3001/api/feedback')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    setFeedbacks(data.data);
+                }
+            })
+            .catch(error => console.error('Error fetching feedbacks:', error));
+    };
+
+    // Load feedbacks when component mounts
+    useEffect(() => {
+        fetchFeedbacks();
+    }, []);
+
     // Function to open the "new feedback" modal
     const openModal = () => {
         setIsModalOpen(true);
@@ -31,11 +48,28 @@ function Feedback() {
     // Function to handle form submission (for new feedback)
     const handleSubmit = (e) => {
         e.preventDefault();
-        const timestamp = new Date(); // Get the current timestamp
-        setFeedbacks([...feedbacks, { title, description, timestamp }]); // Store title, description, and timestamp
-        setTitle('');
-        setDescription('');
-        closeModal();
+        
+        // Send feedback to the server
+        fetch('http://localhost:3001/api/feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title, description })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Refresh the feedbacks list
+                fetchFeedbacks();
+                
+                // Clear form and close modal
+                setTitle('');
+                setDescription('');
+                closeModal();
+            }
+        })
+        .catch(error => console.error('Error submitting feedback:', error));
     };
 
     // Function to format the time elapsed
