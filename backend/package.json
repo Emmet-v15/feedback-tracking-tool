@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "bun src/index.ts",
-    "start": "bun dist/index.js",
-    "postinstall": "prisma generate"
+    "dev": "bun --hot src/index.js",
+    "start": "bun src/index.js"
   },
   "keywords": [],
   "author": "",

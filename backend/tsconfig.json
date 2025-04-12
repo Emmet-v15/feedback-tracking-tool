@@ -1,11 +1,21 @@
 {
-    "compilerOptions": {
-      "target": "ES2020",
-      "module": "NodeNext",
-      "moduleResolution": "NodeNext",
-      "esModuleInterop": true,
-      "strict": true,
-      "outDir": "./dist"
-    },
-    "include": ["**/*.ts"]
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": ["src"]
 }
