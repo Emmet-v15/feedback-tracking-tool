@@ -1,22 +1,30 @@
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://backend:4000
+      - VITE_APP_PORT=3000
+      - CHOKIDAR_USEPOLLING=true
     volumes:
-      - frontend-build:/app/dist
+      - ./frontend/:/app/
+      - frontend-node_modules:/app/node_modules
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
     ports:
       - "4000:4000"
     depends_on:
-      - postgres
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/feedtrac?schema=public
-      - PORT=4000
+      - database
     volumes:
-      - ./backend:/app/src
-      
-  postgres:
+      - ./backend/src:/app/src
+
+  database:
     image: postgres:17
     ports:
       - "5432:5432"
@@ -29,4 +37,4 @@ services:
 
 volumes:
   postgres-data:
-  frontend-build:
+  frontend-node_modules:
