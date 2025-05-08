@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM feedback_labels WHERE feedback_id = $1 AND label_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b17934a485e72ee940f055d951de8c17b4d70094662edd5f04b906caee89756e"
+}
