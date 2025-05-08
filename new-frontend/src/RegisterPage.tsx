@@ -33,7 +33,6 @@ export default function RegisterPage() {
                     role: form.role
                 })
             })
-            let data = null
             switch (response.status) {
                 case 200:
                 case 201:

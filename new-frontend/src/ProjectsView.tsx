@@ -19,7 +19,7 @@ export default function ProjectsView() {
             setError(null)
             try {
                 const token = localStorage.getItem('token')
-                const res = await fetch('/api/projects/', {
+                const res = await fetch('/api/project/', {
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {}
                 })
                 if (!res.ok) throw new Error('Failed to fetch projects')
