@@ -37,7 +37,6 @@ export default function RegisterPage() {
             switch (response.status) {
                 case 200:
                 case 201:
-                    data = await response.json()
                     break;
                 case 400:
                     throw new Error('Invalid input. Please check your data.')
@@ -50,9 +49,8 @@ export default function RegisterPage() {
                     
             }
             if (!response.ok) {
-                throw new Error(data.message || 'Registration failed')
+                throw new Error('Registration failed')
             }
-            localStorage.setItem('token', data.token)
             setForm({ username: '', email: '', password: '', role: '' })
             navigate('/login')
         } catch (err: unknown) {
