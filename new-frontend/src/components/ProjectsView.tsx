@@ -80,9 +80,11 @@ export default function ProjectsView() {
         <Typography variant="h4">Projects</Typography>
         <Box display="flex" alignItems="center" gap={2}>
           <Button variant="outlined" color="secondary" onClick={() => { localStorage.removeItem('token'); window.location.reload(); }}>Logout</Button>
-          <Fab color="primary" size="small" onClick={handleAdd} aria-label="add project">
-            <AddIcon />
-          </Fab>
+          {isPrivileged && (
+            <Fab color="primary" size="small" onClick={handleAdd} aria-label="add project">
+              <AddIcon />
+            </Fab>
+          )}
         </Box>
       </Box>
       <Grid container spacing={3} sx={{ pb: 6 }}>

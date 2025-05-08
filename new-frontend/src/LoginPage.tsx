@@ -41,9 +41,22 @@ export default function LoginPage() {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
+                position: 'relative',
+                '::before': {
+                  content: '""',
+                  position: 'fixed',
+                  inset: 0,
+                  zIndex: 0,
+                  backgroundImage: 'url(https://cdn.v15.studio/feedtrack/wallpaper-blurred.webp)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  opacity: 0.6,
+                  filter: 'blur(2px)',
+                  pointerEvents: 'none',
+                },
             }}
         >
-            <Paper sx={{ p: 4, width: '100%' }}>
+            <Paper sx={{ p: 4, width: '100%', position: 'relative', zIndex: 1 }}>
                 <Typography variant="h4" align="center" gutterBottom>
                     FeedTrack Login
                 </Typography>

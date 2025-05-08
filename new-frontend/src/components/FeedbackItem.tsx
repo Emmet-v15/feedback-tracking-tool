@@ -36,11 +36,13 @@ export default function FeedbackItem({ projectId, feedbackId, onBack }: Feedback
     fetchDetails();
   }, [projectId, feedbackId]);
 
-  useEffect(() => {
-    console.log('Comments with user data:', comments);
-  }, [comments]);
-
-  const canDeleteComment = (c: any) => user?.id === c.user_id || user?.role === 'admin'
+  const getCommentUserId = (c: any) => c.user_id ?? c.userId ?? c.user?.id;
+  const canDeleteComment = (c: any) => {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    if (user.role === 'student') return String(user.id) === String(getCommentUserId(c));
+    return String(user.id) === String(getCommentUserId(c));
+  }
 
   const handleAddLabel = async () => {
     setLoading(true);
