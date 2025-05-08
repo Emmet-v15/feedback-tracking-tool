@@ -16,6 +16,17 @@ pub struct Comment {
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CommentWithUser {
+    pub id: Option<i32>,
+    pub content: String,
+    pub created_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub user_id: i32,
+    pub feedback_id: i32,
+    pub username: String,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct CommentPayload {
     pub content: String,
 }

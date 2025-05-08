@@ -5,6 +5,7 @@ import RegisterPage from './RegisterPage'
 import ProjectsView from './components/ProjectsView'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { CssBaseline, Container } from '@mui/material'
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('token')))
@@ -39,20 +40,23 @@ export default function App() {
         // eslint-disable-next-line
     }, [location.pathname])
 
-    if (!isLoggedIn) {
-        return (
-            <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
-        )
-    }
-
     return (
-        <Routes>
-            <Route path="/projects" element={<ProjectsView />} />
-            <Route path="*" element={<Navigate to="/projects" replace />} />
-        </Routes>
+        <>
+            <CssBaseline />
+            <Container maxWidth="lg" sx={{ py: 4 }}>
+                {!isLoggedIn ? (
+                    <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="*" element={<Navigate to="/login" replace />} />
+                    </Routes>
+                ) : (
+                    <Routes>
+                        <Route path="/projects" element={<ProjectsView />} />
+                        <Route path="*" element={<Navigate to="/projects" replace />} />
+                    </Routes>
+                )}
+            </Container>
+        </>
     )
 }

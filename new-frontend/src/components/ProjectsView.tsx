@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from 'react'
-import { Container, Box, Fab, Typography, Card, CardContent, CardActions, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, List, ListItem, ListItemText, Grid } from '@mui/material'
+import { Container, Box, Fab, Typography, Card, CardContent, CardActions, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, List, ListItem, ListItemText } from '@mui/material'
+import Grid from '@mui/material/Grid'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -83,14 +84,14 @@ export default function ProjectsView() {
       </Box>
       <Grid container spacing={3} sx={{ pb: 6 }}>
         {projects.map(proj => (
-          <Grid item component="div" key={proj.id} xs={12} sm={6} md={4} lg={3}>
+          <Grid key={proj.id} item xs={12} sm={6} md={4} lg={3}>
             <Card
               onClick={() => setSelectedProjectId(proj.id!)}
               sx={{
                 bgcolor: '#232323',
                 color: '#fff',
                 width: 250,
-                height: 200,
+                height: 140,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -107,11 +108,11 @@ export default function ProjectsView() {
             >
               <CardContent>
                 <Typography variant="h6" gutterBottom>{proj.name}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ color: '#bbb' }}>
-                  {proj.description || <span style={{ color: '#555' }}>No description</span>}
+                <Typography variant="body2" color="text.secondary" sx={{ color: 'text.secondary' }}>
+                  {proj.description || <span style={{ color: '#888' }}>No description</span>}
                 </Typography>
                 {proj.created_at && (
-                  <Typography variant="caption" sx={{ display: 'block', mt: 2, color: '#666' }}>
+                  <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.disabled' }}>
                     Created: {new Date(proj.created_at).toLocaleString()}
                   </Typography>
                 )}

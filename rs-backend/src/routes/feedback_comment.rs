@@ -1,4 +1,4 @@
-use crate::models::comment::{Comment, CommentPayload};
+use crate::models::comment::{Comment, CommentPayload, CommentWithUser};
 use axum::{
     Json, Router,
     extract::{Path, State},
@@ -22,7 +22,7 @@ pub fn routes() -> Router<PgPool> {
         ("feedback_id", Path, description = "Feedback ID")
     ),
     responses(
-        (status = 200, description = "OK", body = [Comment]),
+        (status = 200, description = "OK", body = [CommentWithUser]),
         (status = 404, description = "Not Found")
     )
 )]
@@ -38,15 +38,18 @@ pub async fn get_comments(
         return (StatusCode::NOT_FOUND, Json(serde_json::json!({"error": "Feedback not found"}))).into_response();
     }
     match sqlx::query_as!(
-        Comment,
-        "SELECT * FROM comments WHERE feedback_id = $1",
+        CommentWithUser,
+        r#"SELECT c.id, c.content, c.created_at, c.user_id, c.feedback_id, u.username
+            FROM comments c
+            JOIN users u ON c.user_id = u.id
+            WHERE c.feedback_id = $1"#,
         feedback_id
     )
     .fetch_all(&pool)
     .await {
         Ok(comments) => {
             if comments.is_empty() {
-                return (StatusCode::OK, Json(Vec::<Comment>::new())).into_response();
+                return (StatusCode::OK, Json(Vec::<CommentWithUser>::new())).into_response();
             }
             Json(comments).into_response()
         },

@@ -13,6 +13,7 @@ export default defineConfig({
         rewrite: path => path.replace(/^\/api/, ''),
       },
     },
-    port: Number(process.env.VITE_APP_PORT) || 3000,
+    port: Number(process.env.VITE_APP_PORT) || 8000,
+    allowedHosts: ['local.v15.studio']
   },
 });

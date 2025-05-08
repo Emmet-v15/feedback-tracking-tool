@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Grid, Card, CardContent, Typography, CardActionArea, Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material'
+import { Card, CardContent, Typography, CardActionArea, Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem } from '@mui/material'
+import Grid from '@mui/material/Grid'
 import AddIcon from '@mui/icons-material/Add'
 import { api } from '../api'
 import FeedbackItem from './FeedbackItem'
@@ -26,16 +27,24 @@ export default function FeedbackList({ projectId, onBack }: FeedbackListProps) {
     }
 
     const handleAddFeedback = async () => {
-        setLoading(true)
-        try {
-            const created = await api.post(`/project/${projectId}/feedback/`, newFeedback)
-            setFeedbacks(f => [...f, created])
-            setAddFeedbackOpen(false)
-            setNewFeedback({ title: '', description: '', status: 'open', priority: 'medium' })
-        } finally {
-            setLoading(false)
+        if (!['high', 'medium', 'low'].includes(newFeedback.priority)) {
+            alert('Priority must be one of: high, medium, low');
+            return;
         }
-    }
+        if (!['open', 'in_progress', 'resolved', 'closed'].includes(newFeedback.status)) {
+            alert('Status must be one of: open, in_progress, resolved, closed');
+            return;
+        }
+        setLoading(true);
+        try {
+            const created = await api.post(`/project/${projectId}/feedback/`, newFeedback);
+            setFeedbacks(f => [...f, created]);
+            setAddFeedbackOpen(false);
+            setNewFeedback({ title: '', description: '', status: 'open', priority: 'medium' });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     if (selectedFeedback !== null) {
         return <FeedbackItem projectId={projectId} feedbackId={selectedFeedback} onBack={() => setSelectedFeedback(null)} />
@@ -43,11 +52,11 @@ export default function FeedbackList({ projectId, onBack }: FeedbackListProps) {
 
     return (
         <Box sx={{ p: 3 }}>
-            <Button onClick={onBack} variant="outlined" sx={{ mb: 2 }}>Back to Projects</Button>
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                <Typography variant="h5">Feedback List</Typography>
+                <Button onClick={onBack} variant="outlined">Back to Projects</Button>
                 <Button variant="contained" onClick={() => setAddFeedbackOpen(true)} startIcon={<AddIcon />}>Add Feedback</Button>
             </Box>
+            <Typography variant="h5" sx={{ mb: 2 }}>Feedback List</Typography>
             <Dialog open={addFeedbackOpen} onClose={() => setAddFeedbackOpen(false)}>
                 <DialogTitle>Add Feedback</DialogTitle>
                 <DialogContent>
@@ -68,18 +77,32 @@ export default function FeedbackList({ projectId, onBack }: FeedbackListProps) {
                         sx={{ mb: 2 }}
                     />
                     <TextField
+                        select
                         label="Status"
                         value={newFeedback.status}
                         onChange={e => setNewFeedback(f => ({ ...f, status: e.target.value }))}
                         fullWidth
                         sx={{ mb: 2 }}
-                    />
+                    >
+                        {['open', 'in_progress', 'resolved', 'closed'].map(option => (
+                            <MenuItem key={option} value={option}>
+                                {option.replace('_', ' ').toUpperCase()}
+                            </MenuItem>
+                        ))}
+                    </TextField>
                     <TextField
+                        select
                         label="Priority"
                         value={newFeedback.priority}
                         onChange={e => setNewFeedback(f => ({ ...f, priority: e.target.value }))}
                         fullWidth
-                    />
+                    >
+                        {['high', 'medium', 'low'].map(option => (
+                            <MenuItem key={option} value={option}>
+                                {option.toUpperCase()}
+                            </MenuItem>
+                        ))}
+                    </TextField>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setAddFeedbackOpen(false)} disabled={loading}>Cancel</Button>
@@ -88,12 +111,13 @@ export default function FeedbackList({ projectId, onBack }: FeedbackListProps) {
             </Dialog>
             <Grid container spacing={3} sx={{ pb: 6 }}>
                 {feedbacks.map(f => (
-                    <Grid component="div" key={f.id} xs={12} sm={6} md={4} lg={3}>
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={f.id}>
                         <Card
                             onClick={() => setSelectedFeedback(f.id)}
                             sx={{
                                 bgcolor: '#232323',
                                 color: '#fff',
+                                width: 250,
                                 height: 140,
                                 display: 'flex',
                                 flexDirection: 'column',

@@ -14,7 +14,7 @@ pub fn routes() -> Router<PgPool> {
     Router::new()
         .route("/", get(get_feedback).post(create_feedback))
         .route(
-            "/{feedback_id}",
+            "/{feedback_id}/",
             get(get_feedback_by_id).delete(delete_feedback),
         )
         .nest("/{feedback_id}/labels/", feedback_label::routes())
@@ -76,7 +76,7 @@ pub async fn create_feedback(
 
 #[utoipa::path(
     get,
-    path = "/project/{project_id}/feedback/{feedback_id}",
+    path = "/project/{project_id}/feedback/{feedback_id}/",
     params(("project_id", Path, description = "Project ID"), ("feedback_id", Path, description = "Feedback ID")),
     responses((status = 200, description = "OK", body = Feedback), (status = 404, description = "Not Found"))
 )]
@@ -97,7 +97,7 @@ pub async fn get_feedback_by_id(
 
 #[utoipa::path(
     delete,
-    path = "/project/{project_id}/feedback/{feedback_id}",
+    path = "/project/{project_id}/feedback/{feedback_id}/",
     params(("project_id", Path, description = "Project ID"), ("feedback_id", Path, description = "Feedback ID")),
     responses((status = 200, description = "OK", body = Feedback), (status = 404, description = "Not Found"))
 )]
