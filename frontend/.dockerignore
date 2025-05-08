@@ -1,6 +1,5 @@
 **/.classpath
 **/.dockerignore
-**/.env
 **/.git
 **/.gitignore
 **/.project
@@ -25,11 +24,6 @@ README.md
 
 node_modules
 npm-debug.log
-.env
-.env.local
-.env.development
-.env.test
-.env.production
 .git
 .gitignore
 README.md

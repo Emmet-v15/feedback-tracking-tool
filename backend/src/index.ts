@@ -5,9 +5,9 @@ import cors from 'cors';
 const app = express();
 const prisma = new PrismaClient();
 
-app.use(cors()); // Enable CORS for frontend requests
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors()); // Enable CORS for frontend requests (api.feedback.v15.studio vs feedback.v15.studio)
+app.use(express.json()); // Allow JSON body parsing in requests
+app.use(express.urlencoded({ extended: true })); // Allow URL-encoded body parsing in requests
 
 // Route to submit new feedback
 app.post('/api/feedback', async (req, res) => {
@@ -59,7 +59,7 @@ app.get('/api/feedback', async (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Backend is running on port ${PORT}`);
 });

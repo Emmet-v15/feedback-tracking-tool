@@ -1,18 +1,21 @@
 {
-  "name": "feedtrac-backend",
+  "name": "feedback-tracking-tool-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "bun src/index.ts",
-    "start": "bun dist/index.js",
-    "postinstall": "prisma generate"
+    "dev": "bun run prisma:deploy-dev && bunx @dotenvx/dotenvx run -f .env.development -- bun --hot src/index.ts",
+    "start": "bun run prisma:deploy-prod && bunx @dotenvx/dotenvx run -f .env.production -- bun src/index.ts",
+    "prisma:deploy-dev": "bunx @dotenvx/dotenvx run -f .env.development -- bun x prisma db push",
+    "prisma:deploy-prod": "bunx @dotenvx/dotenvx run -f .env.production -- bun x prisma db push",
+    "prisma:generate": "bunx @dotenvx/dotenvx run -f .env.development -- bun x prisma generate"
   },
-  "keywords": [],
+  "keywords": [], 
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@apollo/server": "^4.11.3",
+    "@dotenvx/dotenvx": "^1.39.1",
     "@prisma/client": "6.3.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
