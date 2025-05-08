@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, CardContent, Typography, CardActionArea, Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem } from '@mui/material'
+import { Card, CardContent, Typography, CardActionArea, Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Chip } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import AddIcon from '@mui/icons-material/Add'
 import { api } from '../api'
@@ -46,8 +46,13 @@ export default function FeedbackList({ projectId, onBack }: FeedbackListProps) {
         }
     };
 
+    const handleBackFromDetail = () => {
+        setSelectedFeedback(null);
+        fetchFeedbacks();
+    };
+
     if (selectedFeedback !== null) {
-        return <FeedbackItem projectId={projectId} feedbackId={selectedFeedback} onBack={() => setSelectedFeedback(null)} />
+        return <FeedbackItem projectId={projectId} feedbackId={selectedFeedback} onBack={handleBackFromDetail} />
     }
 
     return (
@@ -136,6 +141,10 @@ export default function FeedbackList({ projectId, onBack }: FeedbackListProps) {
                             <CardActionArea sx={{ height: '100%' }}>
                                 <CardContent>
                                     <Typography variant="subtitle1" gutterBottom>{f.title}</Typography>
+                                    <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                                        <Chip label={f.status?.replace('_', ' ').toUpperCase() || 'UNKNOWN'} size="small" sx={{ bgcolor: getStatusColor(f.status), color: '#fff' }} />
+                                        <Chip label={f.priority?.toUpperCase() || 'UNKNOWN'} size="small" sx={{ bgcolor: getPriorityColor(f.priority), color: '#fff' }} />
+                                    </Box>
                                 </CardContent>
                             </CardActionArea>
                         </Card>
@@ -144,4 +153,23 @@ export default function FeedbackList({ projectId, onBack }: FeedbackListProps) {
             </Grid>
         </Box>
     )
+}
+
+function getStatusColor(status: string): string {
+    switch (status) {
+        case 'open': return '#1976d2';
+        case 'in_progress': return '#ffa000';
+        case 'resolved': return '#388e3c';
+        case 'closed': return '#616161';
+        default: return '#757575';
+    }
+}
+
+function getPriorityColor(priority: string): string {
+    switch (priority) {
+        case 'high': return '#d32f2f';
+        case 'medium': return '#fbc02d';
+        case 'low': return '#388e3c';
+        default: return '#757575';
+    }
 }

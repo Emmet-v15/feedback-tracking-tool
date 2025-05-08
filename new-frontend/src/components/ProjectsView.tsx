@@ -78,9 +78,12 @@ export default function ProjectsView() {
     <Container maxWidth="md" sx={{ mt: 4, mb: 6 }}>
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
         <Typography variant="h4">Projects</Typography>
-        <Fab color="primary" size="small" onClick={handleAdd} aria-label="add project">
-          <AddIcon />
-        </Fab>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Button variant="outlined" color="secondary" onClick={() => { localStorage.removeItem('token'); window.location.reload(); }}>Logout</Button>
+          <Fab color="primary" size="small" onClick={handleAdd} aria-label="add project">
+            <AddIcon />
+          </Fab>
+        </Box>
       </Box>
       <Grid container spacing={3} sx={{ pb: 6 }}>
         {projects.map(proj => (
@@ -106,13 +109,27 @@ export default function ProjectsView() {
                 },
               }}
             >
-              <CardContent>
-                <Typography variant="h6" gutterBottom>{proj.name}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ color: 'text.secondary' }}>
+              <CardContent sx={{ flex: '1 1 auto', minHeight: 0 }}>
+                <Typography 
+                  variant="h6" 
+                  gutterBottom 
+                  noWrap 
+                  title={proj.name}
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    width: '100%',
+                    display: 'block',
+                  }}
+                >
+                  {proj.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%', display: 'block' }}>
                   {proj.description || <span style={{ color: '#888' }}>No description</span>}
                 </Typography>
                 {proj.created_at && (
-                  <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.disabled' }}>
+                  <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.disabled', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}>
                     Created: {new Date(proj.created_at).toLocaleString()}
                   </Typography>
                 )}

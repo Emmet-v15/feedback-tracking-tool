@@ -14,6 +14,6 @@ export default defineConfig({
       },
     },
     port: Number(process.env.VITE_APP_PORT) || 8000,
-    allowedHosts: ['local.v15.studio']
+    allowedHosts: ['feedback.v15.studio']
   },
 });

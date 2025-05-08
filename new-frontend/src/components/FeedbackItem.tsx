@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEffect, useState, useContext } from 'react'
-import { Box, Button, Typography, TextField, Chip, List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
+import { Box, Button, Typography, TextField, Chip, List, ListItem, ListItemText, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, Paper } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import AddIcon from '@mui/icons-material/Add'
 import { api } from '../api'
@@ -76,16 +76,68 @@ export default function FeedbackItem({ projectId, feedbackId, onBack }: Feedback
     setComments(c => c.filter(x => x.id !== id))
   }
 
+  const handleDeleteFeedback = async () => {
+    if (!window.confirm('Are you sure you want to delete this feedback?')) return;
+    await api.del(`/project/${projectId}/feedback/${feedbackId}/`);
+    onBack();
+  };
+
+  const handleUpdateField = async (field: 'priority' | 'status', value: string) => {
+    if (!feedback) return;
+    const payload = {
+      title: feedback.title,
+      description: feedback.description,
+      status: field === 'status' ? value : feedback.status,
+      priority: field === 'priority' ? value : feedback.priority,
+    };
+    await api.put(`/project/${projectId}/feedback/${feedbackId}/`, payload);
+    await fetchDetails();
+  };
+
   if (!feedback) return null
   return (
-    <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <Button onClick={onBack} variant="outlined" sx={{ mb: 2 }}>Back to Feedback List</Button>
+    <Paper elevation={3} sx={{ p: 4, borderRadius: 3, maxWidth: 700, mx: 'auto', mt: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <Button onClick={onBack} variant="outlined">Back to Feedback List</Button>
+        <Button onClick={handleDeleteFeedback} variant="outlined" color="error">Delete Feedback</Button>
+      </Box>
       <Typography variant="h5" gutterBottom>{feedback.title}</Typography>
       <Typography variant="body1" sx={{ mb: 2, textAlign: 'center' }}>{feedback.description}</Typography>
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <TextField
+          select
+          label="Status"
+          value={feedback.status}
+          onChange={e => handleUpdateField('status', e.target.value)}
+          size="small"
+          sx={{ minWidth: 140 }}
+        >
+          {['open', 'in_progress', 'resolved', 'closed'].map(option => (
+            <MenuItem key={option} value={option}>{option.replace('_', ' ').toUpperCase()}</MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          select
+          label="Priority"
+          value={feedback.priority}
+          onChange={e => handleUpdateField('priority', e.target.value)}
+          size="small"
+          sx={{ minWidth: 120 }}
+        >
+          {['high', 'medium', 'low'].map(option => (
+            <MenuItem key={option} value={option}>{option.toUpperCase()}</MenuItem>
+          ))}
+        </TextField>
+      </Box>
 
       <Box sx={{ mb: 3, width: '100%', maxWidth: 600 }}>
-        <Typography variant="subtitle1" align="center">Labels</Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="subtitle1">Labels</Typography>
+          <IconButton size="small" onClick={() => setAddLabelOpen(true)} color="primary">
+            <AddIcon />
+          </IconButton>
+        </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {labels.map(l => (
             <Chip 
               key={l.id} 
@@ -103,7 +155,6 @@ export default function FeedbackItem({ projectId, feedbackId, onBack }: Feedback
             />
           ))}
         </Box>
-        <Button size="small" onClick={() => setAddLabelOpen(true)} startIcon={<AddIcon />}>Add Label</Button>
       </Box>
 
       <Dialog open={addLabelOpen} onClose={() => setAddLabelOpen(false)}>
@@ -122,11 +173,19 @@ export default function FeedbackItem({ projectId, feedbackId, onBack }: Feedback
         <Typography variant="subtitle1" align="center">Comments</Typography>
         <List sx={{ width: '100%' }}>
           {comments.map(c => (
-            <ListItem key={c.id} secondaryAction={
-              canDeleteComment(c) && <IconButton edge="end" onClick={() => handleDeleteComment(c.id)}><CloseIcon /></IconButton>
-            }>
-              <ListItemText primary={c.content} secondary={`User ${c.username || c.userId || c.user_id || 'Unknown User'}`} />
-            </ListItem>
+            <Paper key={c.id} elevation={1} sx={{ mb: 1, px: 3, py: 1.25, borderRadius: 2 }}>
+              <ListItem disableGutters
+                secondaryAction={
+                  canDeleteComment(c) && (
+                    <IconButton edge="end" onClick={() => handleDeleteComment(c.id)} sx={{ ml: -1, px: 1.5 }}>
+                      <CloseIcon />
+                    </IconButton>
+                  )
+                }
+              >
+                <ListItemText primary={c.content} secondary={`User ${c.username || c.userId || c.user_id || 'Unknown User'}`} />
+              </ListItem>
+            </Paper>
           ))}
         </List>
         <Box display="flex" alignItems="center" justifyContent="center" sx={{ mt: 2 }}>
@@ -134,6 +193,6 @@ export default function FeedbackItem({ projectId, feedbackId, onBack }: Feedback
           <Button onClick={handleAddComment} disabled={loading || !newComment} sx={{ ml: 1 }}>Add</Button>
         </Box>
       </Box>
-    </Box>
+    </Paper>
   )
 }

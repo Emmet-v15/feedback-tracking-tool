@@ -15,7 +15,7 @@ pub fn routes() -> Router<PgPool> {
         .route("/", get(get_feedback).post(create_feedback))
         .route(
             "/{feedback_id}/",
-            get(get_feedback_by_id).delete(delete_feedback),
+            get(get_feedback_by_id).delete(delete_feedback).put(update_feedback),
         )
         .nest("/{feedback_id}/labels/", feedback_label::routes())
         .nest(
@@ -131,4 +131,41 @@ pub async fn delete_feedback(
         Some(f) => (StatusCode::OK, Json(f)).into_response(),
         None => (StatusCode::NOT_FOUND, "Feedback not found").into_response(),
     }
+}
+
+#[utoipa::path(
+    put,
+    path = "/project/{project_id}/feedback/{feedback_id}/",
+    params(("project_id", Path, description = "Project ID"), ("feedback_id", Path, description = "Feedback ID")),
+    request_body = FeedbackPayload,
+    responses((status = 200, description = "OK", body = Feedback), (status = 404, description = "Not Found"))
+)]
+pub async fn update_feedback(
+    State(pool): State<PgPool>,
+    Path((project_id, feedback_id)): Path<(i32, i32)>,
+    Json(payload): Json<FeedbackPayload>,
+) -> impl IntoResponse {
+    let feedback = sqlx::query_as!(
+        Feedback,
+        "SELECT * FROM feedback WHERE id = $1 AND project_id = $2",
+        feedback_id, project_id
+    )
+    .fetch_optional(&pool)
+    .await
+    .unwrap();
+
+    if feedback.is_none() {
+        return (StatusCode::NOT_FOUND, "Feedback not found").into_response();
+    }
+
+    let updated_feedback = sqlx::query_as!(
+        Feedback,
+        "UPDATE feedback SET title = $1, description = $2, status = $3, priority = $4 WHERE id = $5 AND project_id = $6 RETURNING *",
+        payload.title, payload.description, payload.status, payload.priority, feedback_id, project_id
+    )
+    .fetch_one(&pool)
+    .await
+    .unwrap();
+
+    (StatusCode::OK, Json(updated_feedback)).into_response()
 }
