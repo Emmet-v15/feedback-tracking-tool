@@ -1,4 +1,5 @@
-use crate::models::project::Project;
+use crate::models::project::{Project, ProjectPayload};
+use crate::middleware::auth::AuthContext;
 use axum::{
     Json, Router,
     extract::{Path, State},
@@ -38,21 +39,28 @@ pub async fn get_projects(State(pool): State<PgPool>) -> Json<Vec<Project>> {
 #[utoipa::path(
     post,
     path = "/project/",
-    request_body = Project,
+    request_body = ProjectPayload,
     responses(
         (status = 201, description = "Created", body = Project),
         (status = 400, description = "Bad Request"),
+        (status = 401, description = "Unauthorized"),
         (status = 500, description = "Internal Server Error")
     )
 )]
 pub async fn create_project(
     State(pool): State<PgPool>,
-    Json(payload): Json<Project>,
+    auth_ctx: AuthContext,
+    Json(payload): Json<ProjectPayload>,
 ) -> impl IntoResponse {
+    // only teachers or admins can create
+    if auth_ctx.role != "teacher" && auth_ctx.role != "admin" {
+        return (StatusCode::UNAUTHORIZED, "Unauthorized".to_string()).into_response();
+    }
+
     // 1) ensure owner exists
     let owner_exists: bool = sqlx::query_scalar!(
         "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)",
-        payload.owner_id
+        auth_ctx.user_id
     )
     .fetch_one(&pool)
     .await
@@ -69,7 +77,7 @@ pub async fn create_project(
         "INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING *",
         payload.name,
         payload.description,
-        payload.owner_id
+        auth_ctx.user_id
     )
     .fetch_one(&pool)
     .await
@@ -98,19 +106,23 @@ pub async fn create_project(
 pub async fn get_project_by_id(
     State(pool): State<PgPool>,
     Path(id): Path<i32>,
-) -> Json<Option<Project>> {
+) -> impl IntoResponse {
     let project = sqlx::query_as!(Project, "SELECT * FROM projects WHERE id = $1", id)
         .fetch_optional(&pool)
         .await
         .unwrap();
-    Json(project)
+
+    match project {
+        Some(project) => (StatusCode::OK, Json(project)).into_response(),
+        None => (StatusCode::NOT_FOUND, "Project not found".to_string()).into_response(),
+    }
 }
 
 #[utoipa::path(
     put,
     path = "/project/{project_id}",
     params(("project_id", Path, description = "Project ID")),
-    request_body = Project,
+    request_body = ProjectPayload,
     responses(
         (status = 200, description = "OK", body = Project),
         (status = 404, description = "Not Found")
@@ -119,14 +131,23 @@ pub async fn get_project_by_id(
 pub async fn update_project(
     State(pool): State<PgPool>,
     Path(id): Path<i32>,
-    Json(payload): Json<Project>,
-) -> Json<Project> {
-    let project = sqlx::query_as!(Project, "UPDATE projects SET name = $1, description = $2, owner_id = $3, updated_at = $4 WHERE id = $5 RETURNING *", 
-        payload.name, payload.description, payload.owner_id, payload.updated_at, id)
-        .fetch_one(&pool)
-        .await
-        .unwrap();
-    Json(project)
+    Json(payload): Json<ProjectPayload>,
+) -> impl IntoResponse {
+    let project = sqlx::query_as!(
+        Project,
+        "UPDATE projects SET name = $1, description = $2 WHERE id = $3 RETURNING *",
+        payload.name,
+        payload.description,
+        id
+    )
+    .fetch_optional(&pool)
+    .await
+    .unwrap();
+
+    match project {
+        Some(project) => (StatusCode::OK, Json(project)).into_response(),
+        None => (StatusCode::NOT_FOUND, "Project not found".to_string()).into_response(),
+    }
 }
 
 #[utoipa::path(
@@ -135,13 +156,20 @@ pub async fn update_project(
     params(("project_id", Path, description = "Project ID")),
     responses(
         (status = 200, description = "OK", body = Project),
+        (status = 401, description = "Unauthorized"),
         (status = 404, description = "Not Found")
     )
 )]
 pub async fn delete_project(
     State(pool): State<PgPool>,
+    auth_ctx: AuthContext,
     Path(id): Path<i32>,
-) -> Json<Option<Project>> {
+) -> impl IntoResponse {
+    // only teachers or admins can delete
+    if auth_ctx.role != "teacher" && auth_ctx.role != "admin" {
+        return (StatusCode::UNAUTHORIZED, "Unauthorized".to_string()).into_response();
+    }
+
     let project = sqlx::query_as!(
         Project,
         "DELETE FROM projects WHERE id = $1 RETURNING *",
@@ -150,5 +178,9 @@ pub async fn delete_project(
     .fetch_optional(&pool)
     .await
     .unwrap();
-    Json(project)
+
+    match project {
+        Some(project) => (StatusCode::OK, Json(project)).into_response(),
+        None => (StatusCode::NOT_FOUND, "Project not found".to_string()).into_response(),
+    }
 }

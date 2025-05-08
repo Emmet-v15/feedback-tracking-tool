@@ -1,24 +1,10 @@
-use axum_test::TestServer;
-use axum::http::StatusCode;
-use rs_backend::app::build_app_with_pool;
 mod test_utils;
 use test_utils::*;
+use serde_json::{json, Value};
 
 #[tokio::test]
 async fn test_get_comments_empty() {
-    let pool = test_db_pool().await;
-    truncate_tables(&pool).await;
-    let user_id = create_test_user(&pool, "comment_owner", "commentpass", "comment_owner@example.com", "student").await;
-    let project_id = sqlx::query!("INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING id", "Comment Project", "desc", user_id)
-        .fetch_one(&pool).await.unwrap().id;
-    let feedback_id = sqlx::query!("INSERT INTO feedback (title, description, status, priority, creator_id, project_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", "Feedback for Comment", "desc", "open", "medium", user_id, project_id)
-        .fetch_one(&pool).await.unwrap().id;
-    println!("Test setup - project_id: {}, feedback_id: {}", project_id, feedback_id);
-    let feedbacks: Vec<(i32, i32)> = sqlx::query_as::<_, (i32, i32)>("SELECT id, project_id FROM feedback").fetch_all(&pool).await.unwrap();
-    println!("Feedback table contents: {:?}", feedbacks);
-    let app = build_app_with_pool(pool.clone()).await;
-    let server = TestServer::new(app).unwrap();
-    let jwt = login_and_get_jwt(&server, "comment_owner", "commentpass").await;
+    let (server, jwt, _user_id, project_id, feedback_id) = setup_test_environment().await;
     let response = server
         .get(&format!("/project/{}/feedback/{}/comments/", project_id, feedback_id))
         .add_header("Authorization", &format!("Bearer {}", jwt))
@@ -27,86 +13,107 @@ async fn test_get_comments_empty() {
 }
 
 #[tokio::test]
-async fn test_create_comment_invalid() {
-    let pool = test_db_pool().await;
-    truncate_tables(&pool).await;
-    let app = build_app_with_pool(pool.clone()).await;
-    let server = TestServer::new(app).unwrap();
-    // Seed user, project, feedback
-    let username = "commenter";
-    let password = "commentpass";
-    let email = "commenter@example.com";
-    register_test_user(&server, username, password, email, "student").await;
-    let user_id = sqlx::query!("SELECT id FROM users WHERE username = $1", username)
-        .fetch_one(&pool).await.unwrap().id;
-    let project_id = sqlx::query!("INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING id", "Comment Project", "desc", user_id)
-        .fetch_one(&pool).await.unwrap().id;
-    let feedback_id = sqlx::query!("INSERT INTO feedback (title, description, status, priority, creator_id, project_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", "Feedback for Comment", "desc", "open", "medium", user_id, project_id)
-        .fetch_one(&pool).await.unwrap().id;
-    // No content field (invalid data), no auth header
-    let body = serde_json::json!({});
+async fn test_create_comment_unauthorized() {
+    let (server, _jwt, _user_id, project_id, feedback_id) = setup_test_environment().await;
+    let body = json!({ "content": "Test comment" });
     let response = server
         .post(&format!("/project/{}/feedback/{}/comments/", project_id, feedback_id))
         .json(&body)
         .await;
-    // Should be 401 (unauthorized) or 404 (not found) if auth is required
-    assert!(
-        response.status_code() == StatusCode::UNAUTHORIZED
-        || response.status_code() == StatusCode::NOT_FOUND
-    );
+    assert_eq!(response.status_code(), 401);
+}
+
+#[tokio::test]
+async fn test_edit_comment() {
+    let (server, jwt, _user_id, project_id, feedback_id) = setup_test_environment().await;
+    let body = json!({ "content": "Initial comment" });
+    let response = server
+        .post(&format!("/project/{}/feedback/{}/comments/", project_id, feedback_id))
+        .add_header("Authorization", &format!("Bearer {}", jwt))
+        .json(&body)
+        .await;
+    assert_eq!(response.status_code(), 201);
+
+    let id = response.json::<Value>();
+    let comment_id = id["id"].as_i64().unwrap_or(0);
+    assert!(comment_id > 0, "Comment ID should be greater than 0");
+
+    let body = json!({ "content": "Updated comment" });
+    let response2 = server
+        .put(&format!("/project/{}/feedback/{}/comments/{}", project_id, feedback_id, comment_id))
+        .add_header("Authorization", &format!("Bearer {}", jwt))
+        .json(&body)
+        .await;
+    assert_eq!(response2.status_code(), 200);
+}
+
+#[tokio::test]
+async fn test_edit_comment_unauthorized() {
+    let (server, jwt1, _user_id, project_id, feedback_id) = setup_test_environment().await;
+    register_test_user(&server, "user2", "password", "user2@email.com", "student").await;
+    let jwt2 = login_and_get_jwt(&server, "user2", "password").await;
+
+    let body = json!({ "content": "Initial comment" });
+    let response = server
+        .post(&format!("/project/{}/feedback/{}/comments/", project_id, feedback_id))
+        .add_header("Authorization", &format!("Bearer {}", jwt1))
+        .json(&body)
+        .await;
+    assert_eq!(response.status_code(), 201);
+    let id = response.json::<Value>();
+    let comment_id = id["id"].as_i64().unwrap_or(0);
+    assert!(comment_id > 0, "Comment ID should be greater than 0");
+
+    let body = json!({ "content": "Updated comment" });
+    let response2 = server
+        .put(&format!("/project/{}/feedback/{}/comments/{}", project_id, feedback_id, comment_id))
+        .add_header("Authorization", &format!("Bearer {}", jwt2))
+        .json(&body)
+        .await;
+    assert!(response2.status_code() == 401 || response2.status_code() == 404);
+}
+
+#[tokio::test]
+async fn test_create_comment() {
+    let (server, jwt, _user_id, project_id, feedback_id) = setup_test_environment().await;
+    let body = json!({ "content": "Test comment" });
+    let response = server
+        .post(&format!("/project/{}/feedback/{}/comments/", project_id, feedback_id))
+        .add_header("Authorization", &format!("Bearer {}", jwt))
+        .json(&body)
+        .await;
+    if response.status_code() != 404 {
+        let id = response.json::<Value>();
+        let comment_id = id["id"].as_i64().unwrap_or(0);
+        assert!(comment_id > 0, "Comment ID should be greater than 0");
+    }
+    assert_eq!(response.status_code(), 201);
 }
 
 #[tokio::test]
 async fn test_put_comment_not_found() {
-    let pool = test_db_pool().await;
-    truncate_tables(&pool).await;
-    let app = build_app_with_pool(pool.clone()).await;
-    let server = TestServer::new(app).unwrap();
-    // Register and login user
-    let username = "commentputter";
-    let password = "commentpass";
-    let email = "commentputter@example.com";
-    register_test_user(&server, username, password, email, "student").await;
-    let user_id = sqlx::query!("SELECT id FROM users WHERE username = $1", username)
-        .fetch_one(&pool).await.unwrap().id;
-    let project_id = sqlx::query!("INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING id", "Comment Project", "desc", user_id)
-        .fetch_one(&pool).await.unwrap().id;
-    let feedback_id = sqlx::query!("INSERT INTO feedback (title, description, status, priority, creator_id, project_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id", "Feedback for Comment", "desc", "open", "medium", user_id, project_id)
-        .fetch_one(&pool).await.unwrap().id;
-    let jwt = login_and_get_jwt(&server, username, password).await;
-    let body = serde_json::json!({
-        "content": "Updated comment",
-        "user_id": user_id,
-        "feedback_id": feedback_id
-    });
-    let response = server.put(&format!("/project/{}/feedback/{}/comments/999999", project_id, feedback_id))
+    let (server, jwt, _user_id, project_id, feedback_id) = setup_test_environment().await;
+    let body = json!({ "content": "Updated comment" });
+    let response = server
+        .put(&format!("/project/{}/feedback/{}/comments/999999", project_id, feedback_id))
         .add_header("Authorization", &format!("Bearer {}", jwt))
         .json(&body)
         .await;
-    if response.status_code() != StatusCode::NOT_FOUND {
-        let _ = response.json::<serde_json::Value>();
+    if response.status_code() != 404 {
+        let _ = response.json::<Value>();
     }
     assert!(response.status_code() == 404 || response.status_code() == 500 || response.status_code() == 401);
 }
 
 #[tokio::test]
 async fn test_delete_comment_not_found() {
-    let pool = test_db_pool().await;
-    truncate_tables(&pool).await;
-    let app = build_app_with_pool(pool.clone()).await;
-    let server = TestServer::new(app).unwrap();
-    // Register and login user
-    let username = "commentdeleter";
-    let password = "commentpass";
-    let email = "commentdeleter@example.com";
-    register_test_user(&server, username, password, email, "student").await;
-    let jwt = login_and_get_jwt(&server, username, password).await;
-    // Authenticated request
-    let response = server.delete("/project/1/feedback/1/comments/999999")
+    let (server, jwt, _user_id, _project_id, _feedback_id) = setup_test_environment().await;
+    let response = server
+        .delete("/project/1/feedback/1/comments/999999")
         .add_header("Authorization", &format!("Bearer {}", jwt))
         .await;
-    if response.status_code() != StatusCode::NOT_FOUND {
-        let _ = response.json::<serde_json::Value>();
+    if response.status_code() != 404 {
+        let _ = response.json::<Value>();
     }
     assert!(response.status_code() == 404 || response.status_code() == 500 || response.status_code() == 401);
 }

@@ -15,3 +15,12 @@ pub struct Project {
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
 }
+
+#[derive(Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ProjectPayload {
+    #[schema(example = "Project Name")]
+    pub name: String,
+    #[schema(example = "A project description")]
+    pub description: Option<String>,
+}

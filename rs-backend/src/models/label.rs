@@ -8,3 +8,10 @@ pub struct Label {
     pub color: String,
     pub project_id: i32,
 }
+
+#[derive(Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct LabelPayload {
+    pub name: String,
+    pub color: String,
+}

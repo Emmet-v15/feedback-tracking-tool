@@ -1,39 +1,57 @@
-use axum_test::TestServer;
-use rs_backend::app::build_app_with_pool;
 mod test_utils;
 use test_utils::*;
+use serde_json::json;
 
 #[tokio::test]
 async fn test_get_enrollments_empty() {
-    let pool = test_db_pool().await;
-    truncate_tables(&pool).await;
-    let user_id = create_test_user(&pool, "enroll_owner", "enrollpass", "enroll_owner@example.com", "student").await;
-    let project_id = sqlx::query!("INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING id", "Enroll Project", "desc", user_id)
-        .fetch_one(&pool).await.unwrap().id;
-    let app = build_app_with_pool(pool.clone()).await;
-    let server = TestServer::new(app).unwrap();
-    let response = server.get(&format!("/project/{}/enrollment/", project_id)).await;
+    let (server, jwt, _user_id, project_id, _feedback_id) = setup_test_environment().await;
+    let response = server
+        .get(&format!("/project/{}/enrollment/", project_id))
+        .add_header("Authorization", &format!("Bearer {}", jwt))
+        .await;
     assert_eq!(response.status_code(), 200);
 }
 
 #[tokio::test]
 async fn test_create_enrollment_invalid() {
-    let pool = test_db_pool().await;
-    truncate_tables(&pool).await;
-    let app = build_app_with_pool(pool.clone()).await;
-    let server = TestServer::new(app).unwrap();
-    let body = serde_json::json!(999999); // user_id
-    let response = server.post("/project/1/enrollment/").json(&body).await;
-    assert!(response.status_code() == 500);
+    let (server, jwt, _user_id, project_id, _feedback_id) = setup_test_environment().await;
+    let body = json!(999999);
+    let response = server
+        .post(&format!("/project/{}/enrollment/", project_id))
+        .add_header("Authorization", &format!("Bearer {}", jwt))
+        .json(&body)
+        .await;
+    assert!(response.status_code() == 400);
 }
 
 #[tokio::test]
-async fn test_delete_enrollment_invalid() {
-    let pool = test_db_pool().await;
-    truncate_tables(&pool).await;
-    let app = build_app_with_pool(pool.clone()).await;
-    let server = TestServer::new(app).unwrap();
-    let body = serde_json::json!(999999); // user_id
-    let response = server.delete("/project/1/enrollment/").json(&body).await;
-    assert!(response.status_code() == 500);
+async fn test_create_enrollment() {
+    let (server, jwt, user_id, project_id, _feedback_id) = setup_test_environment().await;
+    let body = json!(user_id);
+    let response = server
+        .post(&format!("/project/{}/enrollment/", project_id))
+        .add_header("Authorization", &format!("Bearer {}", jwt))
+        .json(&body)
+        .await;
+    assert!(response.status_code() == 201);
+}
+
+#[tokio::test]
+async fn test_delete_enrollment() {
+    let (server, jwt, user_id, project_id, _feedback_id) = setup_test_environment().await;
+
+    let body = json!(user_id);
+    let response = server
+        .post(&format!("/project/{}/enrollment/", project_id))
+        .add_header("Authorization", &format!("Bearer {}", jwt))
+        .json(&body)
+        .await;
+    assert!(response.status_code() == 201);
+
+    let response = server
+        .delete(&format!("/project/{}/enrollment/", project_id))
+        .add_header("Authorization", &format!("Bearer {}", jwt))
+        .json(&body)
+        .await;
+    assert!(response.status_code() == 200);
 }

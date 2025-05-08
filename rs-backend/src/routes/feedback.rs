@@ -1,4 +1,4 @@
-use crate::models::feedback::Feedback;
+use crate::{middleware::auth::AuthContext, models::feedback::{Feedback, FeedbackPayload}};
 use axum::{
     Json, Router,
     extract::{Path, State},
@@ -17,7 +17,7 @@ pub fn routes() -> Router<PgPool> {
             "/{feedback_id}",
             get(get_feedback_by_id).delete(delete_feedback),
         )
-        .nest("/{feedback_id}/labels", feedback_label::routes())
+        .nest("/{feedback_id}/labels/", feedback_label::routes())
         .nest(
             "/{feedback_id}/comments/",
             feedback_comment::routes(),
@@ -58,10 +58,11 @@ pub async fn get_feedback(
 pub async fn create_feedback(
     State(pool): State<PgPool>,
     Path(project_id): Path<i32>,
-    Json(payload): Json<Feedback>,
-) -> impl axum::response::IntoResponse {
+    auth_ctx: AuthContext,
+    Json(payload): Json<FeedbackPayload>,
+) -> impl IntoResponse {
     let result = sqlx::query_as!(Feedback, "INSERT INTO feedback (title, description, status, priority, creator_id, project_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", 
-        payload.title, payload.description, payload.status, payload.priority, payload.creator_id, project_id)
+        payload.title, payload.description, payload.status, payload.priority, auth_ctx.user_id, project_id)
         .fetch_one(&pool)
         .await;
     match result {
@@ -82,12 +83,16 @@ pub async fn create_feedback(
 pub async fn get_feedback_by_id(
     State(pool): State<PgPool>,
     Path((project_id, feedback_id)): Path<(i32, i32)>,
-) -> Json<Option<Feedback>> {
+) -> impl IntoResponse {
     let feedback = sqlx::query_as!(Feedback, "SELECT * FROM feedback WHERE id = $1 AND project_id = $2", feedback_id, project_id)
         .fetch_optional(&pool)
         .await
         .unwrap();
-    Json(feedback)
+
+    match feedback {
+        Some(f) => Json(f).into_response(),
+        None => (StatusCode::NOT_FOUND, "Feedback not found").into_response(),
+    }
 }
 
 #[utoipa::path(
@@ -99,8 +104,21 @@ pub async fn get_feedback_by_id(
 pub async fn delete_feedback(
     State(pool): State<PgPool>,
     Path((project_id, feedback_id)): Path<(i32, i32)>,
-) -> Json<Option<Feedback>> {
+) -> impl IntoResponse {
     let feedback = sqlx::query_as!(
+        Feedback,
+        "SELECT * FROM feedback WHERE id = $1 AND project_id = $2",
+        feedback_id, project_id
+    )
+    .fetch_optional(&pool)
+    .await
+    .unwrap();
+
+    if feedback.is_none() {
+        return (StatusCode::NOT_FOUND, "Feedback not found").into_response();
+    }
+
+    let deleted_feedback = sqlx::query_as!(
         Feedback,
         "DELETE FROM feedback WHERE id = $1 AND project_id = $2 RETURNING *",
         feedback_id, project_id
@@ -108,5 +126,9 @@ pub async fn delete_feedback(
     .fetch_optional(&pool)
     .await
     .unwrap();
-    Json(feedback)
+
+    match deleted_feedback {
+        Some(f) => (StatusCode::OK, Json(f)).into_response(),
+        None => (StatusCode::NOT_FOUND, "Feedback not found").into_response(),
+    }
 }

@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
+use super::label::Label;
+
 #[derive(Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Feedback {
@@ -20,4 +22,20 @@ pub struct Feedback {
     pub project_id: i32,
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedbackResponse {
+    pub feedback: Feedback,
+    pub labels: Vec<Label>,
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedbackPayload {
+    pub title: String,
+    pub description: String,
+    pub status: String,
+    pub priority: String,
 }

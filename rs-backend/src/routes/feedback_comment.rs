@@ -1,4 +1,4 @@
-use crate::models::comment::Comment;
+use crate::models::comment::{Comment, CommentPayload};
 use axum::{
     Json, Router,
     extract::{Path, State},
@@ -11,7 +11,7 @@ use sqlx::PgPool;
 pub fn routes() -> Router<PgPool> {
     Router::new()
         .route("/", get(get_comments).post(create_comment))
-        .route("/{comment_id}/", put(put_comment).delete(delete_comment))
+        .route("/{comment_id}", put(put_comment).delete(delete_comment))
 }
 
 #[utoipa::path(
@@ -30,12 +30,9 @@ pub async fn get_comments(
     State(pool): State<PgPool>,
     Path((project_id, feedback_id)): Path<(i32, i32)>,
 ) -> impl axum::response::IntoResponse {
-        // Check if feedback exists for the given project
-    eprintln!("Feedback existence query: project_id = {}, feedback_id = {}", project_id, feedback_id);
     let feedback_exists_raw = sqlx::query!("SELECT id FROM feedback WHERE id = $1 AND project_id = $2", feedback_id, project_id)
         .fetch_optional(&pool)
         .await;
-    eprintln!("Raw feedback existence query result: {:?}", feedback_exists_raw);
     let feedback_exists = feedback_exists_raw.unwrap().is_some();
         if !feedback_exists {
         return (StatusCode::NOT_FOUND, Json(serde_json::json!({"error": "Feedback not found"}))).into_response();
@@ -79,13 +76,20 @@ pub async fn create_comment(
     Path((_project_id, feedback_id)): Path<(i32, i32)>,
     auth_ctx: crate::middleware::auth::AuthContext,
     Json(payload): Json<serde_json::Value>,
-) -> (StatusCode, Json<Comment>) {
-    // Expect JSON field: content (str)
+) -> impl IntoResponse {
     let content = payload
         .get("content")
         .and_then(|v| v.as_str())
-        .unwrap()
+        .unwrap_or("")
         .to_string();
+    if content.is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Missing or empty content"})),
+        )
+        .into_response();
+    }
+
     let comment = sqlx::query_as!(
         Comment,
         "INSERT INTO comments (content, user_id, feedback_id) VALUES ($1, $2, $3) RETURNING *",
@@ -96,7 +100,8 @@ pub async fn create_comment(
     .fetch_one(&pool)
     .await
     .unwrap();
-    (StatusCode::CREATED, Json(comment))
+
+    (StatusCode::CREATED, Json(comment)).into_response()
 }
 
 #[utoipa::path(
@@ -116,22 +121,30 @@ pub async fn create_comment(
 pub async fn put_comment(
     State(pool): State<PgPool>,
     Path((_project_id, feedback_id, comment_id)): Path<(i32, i32, i32)>,
-    Json(payload): Json<Comment>,
+    auth_ctx: crate::middleware::auth::AuthContext,
+    Json(payload): Json<CommentPayload>,
 ) -> impl IntoResponse {
+    // Extract user_id from auth_ctx
+    let user_id = auth_ctx.user_id;
+
+    // Check if the comment exists and belongs to the user
     let comment = sqlx::query_as!(
         Comment,
-        "SELECT * FROM comments WHERE id = $1 AND feedback_id = $2",
+        "SELECT * FROM comments WHERE id = $1 AND feedback_id = $2 AND user_id = $3",
         comment_id,
-        feedback_id
+        feedback_id,
+        user_id
     )
     .fetch_optional(&pool)
     .await
     .unwrap();
 
     if comment.is_none() {
-        return (StatusCode::NOT_FOUND, Json(serde_json::json!({"error": "Comment not found"}))).into_response();
+        return (StatusCode::NOT_FOUND, Json(serde_json::json!({"error": "Comment not found or unauthorized"}))).into_response();
     }
-    let comment = sqlx::query_as!(
+
+    // Update the comment
+    let updated_comment = sqlx::query_as!(
         Comment,
         "UPDATE comments SET content = $1 WHERE id = $2 RETURNING *",
         payload.content,
@@ -141,8 +154,7 @@ pub async fn put_comment(
     .await
     .unwrap();
 
-
-    Json(Some(comment)).into_response()
+    Json(Some(updated_comment)).into_response()
 }
 
 #[utoipa::path(

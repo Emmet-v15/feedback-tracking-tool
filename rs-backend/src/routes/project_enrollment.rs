@@ -1,7 +1,5 @@
 use axum::{
-    Json, Router,
-    extract::{Path, State},
-    routing::get,
+    extract::{Path, State}, http::StatusCode, response::IntoResponse, routing::get, Json, Router
 };
 use sqlx::PgPool;
 
@@ -52,16 +50,40 @@ pub async fn create_enrollment(
     State(pool): State<PgPool>,
     Path(project_id): Path<i32>,
     Json(user_id): Json<i32>,
-) -> Json<()> {
-    sqlx::query!(
+) -> impl IntoResponse {
+    if let Err(_) = sqlx::query!(
         "INSERT INTO project_enrollments (project_id, user_id) VALUES ($1, $2)",
         project_id,
         user_id
     )
     .execute(&pool)
     .await
+    {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Failed to create enrollment"})),
+        )
+            .into_response();
+    }
+
+    let exists = sqlx::query!(
+        "SELECT EXISTS(SELECT 1 FROM project_enrollments WHERE project_id = $1 AND user_id = $2)",
+        project_id,
+        user_id
+    )
+    .fetch_one(&pool)
+    .await
     .unwrap();
-    Json(())
+
+    if !exists.exists.unwrap_or(false) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": "Failed to create enrollment"})),
+        )
+            .into_response();
+    }
+
+    (StatusCode::CREATED, Json(())).into_response()
 }
 
 #[utoipa::path(

@@ -14,3 +14,8 @@ pub struct Comment {
     #[schema(example = 1)]
     pub feedback_id: i32,
 }
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct CommentPayload {
+    pub content: String,
+}

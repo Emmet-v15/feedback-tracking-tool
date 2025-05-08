@@ -47,14 +47,9 @@ impl utoipa::Modify for SecuritySchemas {
         feedback_comment::create_comment,
         feedback_comment::put_comment,
         feedback_comment::delete_comment,
-        feedback_label::get_labels,
-        feedback_label::create_label,
-        feedback_label::delete_label,
-
-        label::get_labels,
-        label::create_label,
-        label::get_label_by_id,
-        label::delete_label,
+        feedback_label::get_labels_for_feedback,
+        feedback_label::add_label_to_feedback,
+        feedback_label::remove_label_from_feedback,
 
         // Auth routes
         auth::login,
@@ -95,7 +90,6 @@ pub async fn build_app_with_pool(pool: sqlx::PgPool) -> Router {
     let app = Router::new()
         .nest("/project/", project::routes().with_state(pool.clone()))
         .merge(user::routes().with_state(pool.clone()))
-        .merge(label::routes().with_state(pool.clone()))
         .layer(middleware::from_fn(auth_middleware))
         .merge(health::routes())
         .merge(auth::routes().with_state(pool.clone()))

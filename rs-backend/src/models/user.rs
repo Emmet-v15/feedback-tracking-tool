@@ -21,6 +21,11 @@ pub struct User {
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct EnrolledUser {
+    pub id: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct LoginRequest {
     pub username: String,
     pub password: String,
